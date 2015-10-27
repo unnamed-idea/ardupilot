@@ -7,7 +7,7 @@
 #ifndef __RC_CHANNEL_AUX_H__
 #define __RC_CHANNEL_AUX_H__
 
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 #include "RC_Channel.h"
 
 #if HAL_CPU_CLASS > HAL_CPU_CLASS_16
@@ -68,6 +68,7 @@ public:
         k_steering              = 26,            ///< ground steering, used to separate from rudder
         k_parachute_release     = 27,            ///< parachute release
         k_epm                   = 28,            ///< epm gripper
+        k_landing_gear_control  = 29,            ///< landing gear controller
         k_nr_aux_servo_functions         ///< This must be the last enum value (only add new values _before_ this one)
     } Aux_servo_function_t;
 
@@ -127,10 +128,12 @@ public:
     // return the current function for a channel
     static Aux_servo_function_t channel_function(uint8_t channel);
 
+    // refresh aux servo to function mapping
+    static void update_aux_servo_function(void);
+
 private:
     static uint32_t _function_mask;
     static RC_Channel_aux *_aux_channels[RC_AUX_MAX_CHANNELS];
-    static void update_aux_servo_function(void);
 };
 
 #endif /* RC_CHANNEL_AUX_H_ */

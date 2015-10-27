@@ -3,15 +3,15 @@
 #ifndef __AP_AIRSPEED_H__
 #define __AP_AIRSPEED_H__
 
-#include <AP_Common.h>
-#include <AP_HAL.h>
-#include <AP_Param.h>
-#include <GCS_MAVLink.h>
-#include <AP_Vehicle.h>
-#include <AP_Airspeed_Backend.h>
-#include <AP_Airspeed_analog.h>
-#include <AP_Airspeed_PX4.h>
-#include <AP_Airspeed_I2C.h>
+#include <AP_Common/AP_Common.h>
+#include <AP_HAL/AP_HAL.h>
+#include <AP_Param/AP_Param.h>
+#include <GCS_MAVLink/GCS_MAVLink.h>
+#include <AP_Vehicle/AP_Vehicle.h>
+#include "AP_Airspeed_Backend.h"
+#include "AP_Airspeed_analog.h"
+#include "AP_Airspeed_PX4.h"
+#include "AP_Airspeed_I2C.h"
 
 class Airspeed_Calibration {
 public:
@@ -96,7 +96,7 @@ public:
 
     // return true if airspeed is enabled, and airspeed use is set
     bool        use(void) const {
-        return _enable && _use && fabsf(_offset) > 0 && _healthy;
+        return _enable && _use;
     }
 
     // return true if airspeed is enabled
@@ -147,7 +147,7 @@ public:
 	void log_mavlink_send(mavlink_channel_t chan, const Vector3f &vground);
 
     // return health status of sensor
-    bool healthy(void) const { return _healthy; }
+    bool healthy(void) const { return _healthy && fabsf(_offset) > 0; }
 
     void setHIL(float pressure) { _healthy=_hil_set=true; _hil_pressure=pressure; };
 
@@ -188,7 +188,7 @@ private:
     float get_pressure(void);
 
     AP_Airspeed_Analog analog;
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
+#if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     AP_Airspeed_PX4    digital;
 #else
     AP_Airspeed_I2C    digital;

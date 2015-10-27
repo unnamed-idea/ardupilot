@@ -19,9 +19,9 @@
  */
 
 
-#include <AP_HAL.h>
-#include <GCS.h>
-#include <DataFlash.h>
+#include <AP_HAL/AP_HAL.h>
+#include "GCS.h"
+#include <DataFlash/DataFlash.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -63,16 +63,14 @@ void GCS_MAVLINK::handle_log_request_list(mavlink_message_t *msg, DataFlash_Clas
         _log_next_list_entry = 0;
         _log_last_list_entry = 0;        
     } else {
-        uint16_t last_log_num = dataflash.find_last_log();
-
         _log_next_list_entry = packet.start;
         _log_last_list_entry = packet.end;
 
-        if (_log_last_list_entry > last_log_num) {
-            _log_last_list_entry = last_log_num;
+        if (_log_last_list_entry > _log_num_logs) {
+            _log_last_list_entry = _log_num_logs;
         }
-        if (_log_next_list_entry < last_log_num + 1 - _log_num_logs) {
-            _log_next_list_entry = last_log_num + 1 - _log_num_logs;
+        if (_log_next_list_entry < 1) {
+            _log_next_list_entry = 1;
         }
     }
 
@@ -94,8 +92,7 @@ void GCS_MAVLINK::handle_log_request_data(mavlink_message_t *msg, DataFlash_Clas
         _log_sending = false;
 
         uint16_t num_logs = dataflash.get_num_logs();
-        uint16_t last_log_num = dataflash.find_last_log();
-        if (packet.id > last_log_num || packet.id < last_log_num + 1 - num_logs) {
+        if (packet.id > num_logs || packet.id < 1) {
             return;
         }
 
@@ -159,10 +156,14 @@ void GCS_MAVLINK::handle_log_send(DataFlash_Class &dataflash)
         // when on USB we can send a lot more data
         num_sends = 40;
     } else if (have_flow_control()) {
-        num_sends = 10;        
+#if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
+        num_sends = 80;
+#else
+        num_sends = 10;
+#endif
     }
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     // assume USB speeds in SITL for the purposes of log download
     num_sends = 40;
 #endif

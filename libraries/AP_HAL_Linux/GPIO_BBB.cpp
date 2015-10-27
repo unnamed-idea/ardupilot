@@ -1,7 +1,8 @@
-#include <AP_HAL.h>
+#include <AP_HAL/AP_HAL.h>
 
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PXF || \
-    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_ERLE
+    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_ERLEBOARD || \
+    CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
 #include "GPIO.h"
 #include <stdio.h>
@@ -16,11 +17,11 @@
 
 using namespace Linux;
 
-static const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
-LinuxGPIO_BBB::LinuxGPIO_BBB()
+static const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+GPIO_BBB::GPIO_BBB()
 {}
 
-void LinuxGPIO_BBB::init()
+void GPIO_BBB::init()
 {
 #if LINUX_GPIO_NUM_BANKS == 4
     int mem_fd;
@@ -61,7 +62,7 @@ void LinuxGPIO_BBB::init()
 #endif // LINUX_GPIO_NUM_BANKS
 }
 
-void LinuxGPIO_BBB::pinMode(uint8_t pin, uint8_t output)
+void GPIO_BBB::pinMode(uint8_t pin, uint8_t output)
 {
     uint8_t bank = pin/32;
     uint8_t bankpin = pin & 0x1F;
@@ -75,13 +76,13 @@ void LinuxGPIO_BBB::pinMode(uint8_t pin, uint8_t output)
     }
 }
 
-int8_t LinuxGPIO_BBB::analogPinToDigitalPin(uint8_t pin)
+int8_t GPIO_BBB::analogPinToDigitalPin(uint8_t pin)
 {
     return -1;
 }
 
 
-uint8_t LinuxGPIO_BBB::read(uint8_t pin) {
+uint8_t GPIO_BBB::read(uint8_t pin) {
 
     uint8_t bank = pin/32;
     uint8_t bankpin = pin & 0x1F;
@@ -92,7 +93,7 @@ uint8_t LinuxGPIO_BBB::read(uint8_t pin) {
 
 }
 
-void LinuxGPIO_BBB::write(uint8_t pin, uint8_t value)
+void GPIO_BBB::write(uint8_t pin, uint8_t value)
 {
     uint8_t bank = pin/32;
     uint8_t bankpin = pin & 0x1F;
@@ -106,26 +107,27 @@ void LinuxGPIO_BBB::write(uint8_t pin, uint8_t value)
     }
 }
 
-void LinuxGPIO_BBB::toggle(uint8_t pin)
+void GPIO_BBB::toggle(uint8_t pin)
 {
     write(pin, !read(pin));
 }
 
 /* Alternative interface: */
-AP_HAL::DigitalSource* LinuxGPIO_BBB::channel(uint16_t n) {
-    return new LinuxDigitalSource(n);
+AP_HAL::DigitalSource* GPIO_BBB::channel(uint16_t n) {
+    return new DigitalSource(n);
 }
 
 /* Interrupt interface: */
-bool LinuxGPIO_BBB::attach_interrupt(uint8_t interrupt_num, AP_HAL::Proc p, uint8_t mode)
+bool GPIO_BBB::attach_interrupt(uint8_t interrupt_num, AP_HAL::Proc p, uint8_t mode)
 {
     return true;
 }
 
-bool LinuxGPIO_BBB::usb_connected(void)
+bool GPIO_BBB::usb_connected(void)
 {
     return false;
 }
 
 #endif // CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_PXF ||
-       // CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_ERLE
+       // CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_ERLEBOARD ||
+       // CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
